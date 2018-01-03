@@ -36,7 +36,7 @@ void err(int exitcode, const char * fmt, ...)
 {
 	va_list valist;
 	va_start(valist, fmt);
-	printf(fmt, valist);
+	vprintf(fmt, valist);
 	va_end(valist);
 	exit(exitcode);
 }
