@@ -204,7 +204,7 @@ static void offtout(long x, u_char *buf)
 
 int main(int argc, char *argv[])
 {
-	int fd;
+	FILE * fs;
 	u_char *pold, *pnew;
 	long oldsize, newsize;
 	long *I, *V;
@@ -226,14 +226,15 @@ int main(int argc, char *argv[])
 
 	/* Allocate oldsize+1 bytes instead of oldsize bytes to ensure
 		that we never try to malloc(0) and get a NULL pointer */
-	fd = open(argv[1], O_RDONLY, 0);
-	if (fd == -1)err(1, "Open failed :%s", argv[1]);
-	oldsize = lseek(fd, 0, SEEK_END);
+	fs = fopen(argv[1], "rb");
+	if (fs == NULL)err(1, "Open failed :%s", argv[1]);
+	if (fseek(fs, 0, SEEK_END) != 0)err(1, "Seek failed :%s", argv[1]);
+	oldsize = ftell(fs);
 	pold = (u_char *)malloc(oldsize + 1);
 	if (pold == NULL)	err(1, "Malloc failed :%s", argv[1]);
-	lseek(fd, 0, SEEK_SET);
-	if (read(fd, pold, oldsize) == -1)	err(1, "Read failed :%s", argv[1]);
-	if (close(fd) == -1)	err(1, "Close failed :%s", argv[1]);
+	fseek(fs, 0, SEEK_SET);
+	if (fread(pold, 1, oldsize, fs) == -1)	err(1, "Read failed :%s", argv[1]);
+	if (fclose(fs) == -1)	err(1, "Close failed :%s", argv[1]);
 
 	if (((I = (long *)malloc((oldsize + 1) * sizeof(long))) == NULL) ||
 		((V = (long *)malloc((oldsize + 1) * sizeof(long))) == NULL)) err(1, NULL);
@@ -244,14 +245,15 @@ int main(int argc, char *argv[])
 
 	/* Allocate newsize+1 bytes instead of newsize bytes to ensure
 		that we never try to malloc(0) and get a NULL pointer */
-	fd = open(argv[2], O_RDONLY, 0);
-	if (fd == -1)	err(1, "Open failed :%s", argv[2]);
-	newsize = lseek(fd, 0, SEEK_END);
+	fs = fopen(argv[2], "rb");
+	if (fs == NULL)	err(1, "Open failed :%s", argv[2]);
+	if (fseek(fs, 0, SEEK_END) != 0)err(1, "Seek failed :%s", argv[2]);
+	newsize = ftell(fs);
 	pnew = (u_char *)malloc(newsize + 1);
 	if (pnew == NULL)	err(1, "Malloc failed :%s", argv[2]);
-	lseek(fd, 0, SEEK_SET);
-	if (read(fd, pnew, newsize) == -1)	err(1, "Read failed :%s", argv[2]);
-	if (close(fd) == -1)	err(1, "Close failed :%s", argv[2]);
+	fseek(fs, 0, SEEK_SET);
+	if (fread(pnew, 1, newsize, fs) == -1)	err(1, "Read failed :%s", argv[2]);
+	if (fclose(fs) == -1)	err(1, "Close failed :%s", argv[2]);
 
 	if (((db = (u_char *)malloc(newsize + 1)) == NULL) ||
 		((eb = (u_char *)malloc(newsize + 1)) == NULL)) err(1, NULL);

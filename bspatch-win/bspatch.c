@@ -64,7 +64,7 @@ int main(int argc, char * argv[])
 	FILE * f, *cpf, *dpf, *epf;
 	BZFILE * cpfbz2, *dpfbz2, *epfbz2;
 	int cbz2err, dbz2err, ebz2err;
-	int fd;
+	FILE * fs;
 	long oldsize, newsize;
 	long bzctrllen, bzdatalen;
 	u_char header[32], buf[8];
@@ -137,14 +137,15 @@ int main(int argc, char * argv[])
 	if ((epfbz2 = BZ2_bzReadOpen(&ebz2err, epf, 0, 0, NULL, 0)) == NULL)
 		errx(1, "BZ2_bzReadOpen, bz2err = %d", ebz2err);
 
-	fd = open(argv[1], O_RDONLY, 0);
-	if (fd == -1)err(1, "Open failed :%s", argv[1]);
-	oldsize = lseek(fd, 0, SEEK_END);
+	fs = fopen(argv[1], "rb");
+	if (fs == NULL)err(1, "Open failed :%s", argv[1]);
+	if (fseek(fs, 0, SEEK_END) != 0)err(1, "Seek failed :%s", argv[1]);
+	oldsize = ftell(fs);
 	pold = (u_char *)malloc(oldsize + 1);
 	if (pold == NULL)	err(1, "Malloc failed :%s", argv[1]);
-	lseek(fd, 0, SEEK_SET);
-	if (read(fd, pold, oldsize) == -1)	err(1, "Read failed :%s", argv[1]);
-	if (close(fd) == -1)	err(1, "Close failed :%s", argv[1]);
+	fseek(fs, 0, SEEK_SET);
+	if (fread(pold, 1, oldsize, fs) == -1)	err(1, "Read failed :%s", argv[1]);
+	if (fclose(fs) == -1)	err(1, "Close failed :%s", argv[1]);
 
 	pnew = malloc(newsize + 1);
 	if (pnew == NULL)err(1, NULL);
@@ -202,11 +203,11 @@ int main(int argc, char * argv[])
 		err(1, "fclose(%s)", argv[3]);
 
 	/* Write the pnew file */
-	fd = open(argv[2], O_CREAT | O_TRUNC | O_WRONLY, 0666);
-	if(fd == -1)err(1, "Create failed :%s", argv[2]);
-	if(write(fd, pnew, newsize)==-1)err(1, "Write failed :%s", argv[2]);
-	if(close(fd) == -1)err(1, "Close failed :%s", argv[2]);
-		
+	fs = fopen(argv[2], "wb");
+	if (fs == NULL)err(1, "Create failed :%s", argv[2]);
+	if (fwrite(pnew, 1, newsize, fs) == -1)err(1, "Write failed :%s", argv[2]);
+	if (fclose(fs) == -1)err(1, "Close failed :%s", argv[2]);
+
 	free(pnew);
 	free(pold);
 
