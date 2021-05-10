@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
+#include <stdarg.h>
 
 #define errx err
 void err(int exitcode, const char * fmt, ...)
@@ -41,7 +42,7 @@ void err(int exitcode, const char * fmt, ...)
 	exit(exitcode);
 }
 
-static long offtin(u_char *buf)
+static long offtin(unsigned char *buf)
 {
 	long y;
 
@@ -67,8 +68,8 @@ int main(int argc, char * argv[])
 	FILE * fs;
 	long oldsize, newsize;
 	long bzctrllen, bzdatalen;
-	u_char header[32], buf[8];
-	u_char *pold, *pnew;
+	unsigned char header[32], buf[8];
+	unsigned char *pold, *pnew;
 	long oldpos, newpos;
 	long ctrl[3];
 	long lenread;
@@ -77,7 +78,7 @@ int main(int argc, char * argv[])
 	if (argc != 4) errx(1, "usage: %s oldfile newfile patchfile\n", argv[0]);
 
 	/* Open patch file */
-	if ((f = fopen(argv[3], "r")) == NULL)
+	if ((f = fopen(argv[3], "rb")) == NULL)
 		err(1, "fopen(%s)", argv[3]);
 
 	/*
@@ -141,7 +142,7 @@ int main(int argc, char * argv[])
 	if (fs == NULL)err(1, "Open failed :%s", argv[1]);
 	if (fseek(fs, 0, SEEK_END) != 0)err(1, "Seek failed :%s", argv[1]);
 	oldsize = ftell(fs);
-	pold = (u_char *)malloc(oldsize + 1);
+	pold = (unsigned char *)malloc(oldsize + 1);
 	if (pold == NULL)	err(1, "Malloc failed :%s", argv[1]);
 	fseek(fs, 0, SEEK_SET);
 	if (fread(pold, 1, oldsize, fs) == -1)	err(1, "Read failed :%s", argv[1]);

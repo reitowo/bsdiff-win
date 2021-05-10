@@ -27,6 +27,7 @@
 #include <io.h>
 #include <bzlib.h>
 #include <fcntl.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -107,7 +108,7 @@ static void split(long *I, long *V, long start, long len, long h)
 	if (start + len > kk) split(I, V, kk, start + len - kk, h);
 }
 
-static void qsufsort(long *I, long *V, u_char *pold, long oldsize)
+static void qsufsort(long *I, long *V, unsigned char *pold, long oldsize)
 {
 	long buckets[256];
 	long i, h, len;
@@ -146,7 +147,7 @@ static void qsufsort(long *I, long *V, u_char *pold, long oldsize)
 	for (i = 0;i < oldsize + 1;i++) I[V[i]] = i;
 }
 
-static long matchlen(u_char *pold, long oldsize, u_char *pnew, long newsize)
+static long matchlen(unsigned char *pold, long oldsize, unsigned char *pnew, long newsize)
 {
 	long i;
 
@@ -156,8 +157,8 @@ static long matchlen(u_char *pold, long oldsize, u_char *pnew, long newsize)
 	return i;
 }
 
-static long search(long *I, u_char *pold, long oldsize,
-	u_char *pnew, long newsize, long st, long en, long *pos)
+static long search(long *I, unsigned char *pold, long oldsize,
+	unsigned char *pnew, long newsize, long st, long en, long *pos)
 {
 	long x, y;
 
@@ -184,7 +185,7 @@ static long search(long *I, u_char *pold, long oldsize,
 	};
 }
 
-static void offtout(long x, u_char *buf)
+static void offtout(long x, unsigned char *buf)
 {
 	long y;
 
@@ -205,7 +206,7 @@ static void offtout(long x, u_char *buf)
 int main(int argc, char *argv[])
 {
 	FILE * fs;
-	u_char *pold, *pnew;
+	unsigned char *pold, *pnew;
 	long oldsize, newsize;
 	long *I, *V;
 	long scan, pos, len;
@@ -215,9 +216,9 @@ int main(int argc, char *argv[])
 	long overlap, Ss, lens;
 	long i;
 	long dblen, eblen;
-	u_char *db, *eb;
-	u_char buf[8];
-	u_char header[32];
+	unsigned char *db, *eb;
+	unsigned char buf[8];
+	unsigned char header[32];
 	FILE * pf;
 	BZFILE * pfbz2;
 	int bz2err;
@@ -230,7 +231,7 @@ int main(int argc, char *argv[])
 	if (fs == NULL)err(1, "Open failed :%s", argv[1]);
 	if (fseek(fs, 0, SEEK_END) != 0)err(1, "Seek failed :%s", argv[1]);
 	oldsize = ftell(fs);
-	pold = (u_char *)malloc(oldsize + 1);
+	pold = (unsigned char *)malloc(oldsize + 1);
 	if (pold == NULL)	err(1, "Malloc failed :%s", argv[1]);
 	fseek(fs, 0, SEEK_SET);
 	if (fread(pold, 1, oldsize, fs) == -1)	err(1, "Read failed :%s", argv[1]);
@@ -249,14 +250,14 @@ int main(int argc, char *argv[])
 	if (fs == NULL)	err(1, "Open failed :%s", argv[2]);
 	if (fseek(fs, 0, SEEK_END) != 0)err(1, "Seek failed :%s", argv[2]);
 	newsize = ftell(fs);
-	pnew = (u_char *)malloc(newsize + 1);
+	pnew = (unsigned char *)malloc(newsize + 1);
 	if (pnew == NULL)	err(1, "Malloc failed :%s", argv[2]);
 	fseek(fs, 0, SEEK_SET);
 	if (fread(pnew, 1, newsize, fs) == -1)	err(1, "Read failed :%s", argv[2]);
 	if (fclose(fs) == -1)	err(1, "Close failed :%s", argv[2]);
 
-	if (((db = (u_char *)malloc(newsize + 1)) == NULL) ||
-		((eb = (u_char *)malloc(newsize + 1)) == NULL)) err(1, NULL);
+	if (((db = (unsigned char *)malloc(newsize + 1)) == NULL) ||
+		((eb = (unsigned char *)malloc(newsize + 1)) == NULL)) err(1, NULL);
 	dblen = 0;
 	eblen = 0;
 
